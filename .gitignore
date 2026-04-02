@@ -1,0 +1,25 @@
+# Data and processed output
+data/
+processed_data/
+
+# Model checkpoints
+checkpoints/
+*.pth
+*.pt
+
+# Evaluation outputs
+evaluation_results/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Configs generated at runtime
+configs/
