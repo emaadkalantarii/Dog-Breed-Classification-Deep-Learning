@@ -37,7 +37,7 @@ TRAIN_RATIO     = 0.70
 VAL_RATIO       = 0.20
 TEST_RATIO      = 0.10
 RANDOM_SEED     = 42
-NUM_WORKERS     = max(1, mp.cpu_count() - 1)
+NUM_WORKERS     = 4
 
 IMAGES_DIR      = "data/Images"
 ANNOTATIONS_DIR = "data/Annotation"
@@ -410,4 +410,5 @@ def main():
 
 
 if __name__ == "__main__":
+    mp.freeze_support()
     main()
