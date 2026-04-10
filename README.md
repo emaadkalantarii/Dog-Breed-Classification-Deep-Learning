@@ -1,6 +1,6 @@
 # Dog Breed Classification using Deep Learning
 
-A fine-grained image classification system that identifies **120 dog breeds** from the Stanford Dogs Dataset using transfer learning with ResNet50. Achieves **84.20% test accuracy**, **96.54% Top-3**, and **98.05% Top-5 accuracy** across 2,050 unseen test images.
+A fine-grained image classification system that identifies **120 dog breeds** from the Stanford Dogs Dataset using transfer learning with ResNet50. Achieves **84.56% test accuracy**, **96.89% Top-3**, and **98.25% Top-5 accuracy** across 2,059 unseen test images.
 
 ---
 
@@ -8,23 +8,34 @@ A fine-grained image classification system that identifies **120 dog breeds** fr
 
 | Metric | Score |
 |--------|-------|
-| Top-1 Accuracy | **84.20%** |
-| Top-3 Accuracy | **96.54%** |
-| Top-5 Accuracy | **98.05%** |
-| Macro F1-Score | **80.99%** |
-| Macro Precision | 82.06% |
-| Macro Recall | 81.36% |
-| Generalisation Gap | 0.67% |
+| Top-1 Accuracy | **84.56%** |
+| Top-3 Accuracy | **96.89%** |
+| Top-5 Accuracy | **98.25%** |
+| Macro F1-Score | **84.00%** |
+| Macro Precision | 84.65% |
+| Macro Recall | 84.19% |
+| Best Validation Accuracy | 84.28% |
+| Generalisation Gap | 0.28% |
 
-Training accuracy reached **90.81%** and validation accuracy peaked at **84.87%** over 50 epochs. The small gap between training and validation curves confirms the model generalises well without significant overfitting.
+The very small generalisation gap between validation and test accuracy confirms the model generalises well to unseen data.
 
-### Accuracy over Epochs
+### Training History
 
-![Training and Validation Accuracy](assets/training_accuracy.png)
+The plot below shows loss and accuracy curves across all 50 training epochs. Validation accuracy pulls ahead of training accuracy in the early epochs — a healthy sign of effective data augmentation and dropout-style regularisation preventing early overfitting.
 
-### Loss over Epochs
+![Training Curves](assets/training_curves.png)
 
-![Training and Validation Loss](assets/training_loss.png)
+### Confusion Matrix (Top 30 Classes)
+
+The diagonal dominance confirms strong per-class accuracy across visually diverse breeds. The few off-diagonal confusions align with real-world visual similarity — for example between similar terrier breeds or between sled dog breeds.
+
+![Confusion Matrix](assets/confusion_matrix.png)
+
+### Notable Per-Class Results
+
+Breeds achieving perfect F1-score (1.00): **Sussex spaniel**, **Saint Bernard**, **Pomeranian**, **chow**, **keeshond**, **Mexican hairless**, **dhole**.
+
+Hardest breeds (F1 < 0.60): **Eskimo dog** (0.36), **American Staffordshire terrier** (0.50), **miniature poodle** (0.52) — all visually similar to related breeds in the dataset.
 
 ---
 
@@ -50,9 +61,11 @@ The dataset is well-balanced across all 120 breeds (Coefficient of Variation: 0.
 
 ### Image Dimensions
 
-Raw images vary significantly in size and aspect ratio, which makes a consistent resizing and cropping step essential before training.
+Raw images vary significantly in size and aspect ratio, which makes a consistent cropping and resizing step essential before training.
 
 ![Image Dimensions](assets/image_dimensions.png)
+
+> **Note:** `class_balance.png` and `image_dimensions.png` can be regenerated at high resolution by running `python generate_eda_plots.py` after downloading the dataset.
 
 ---
 
@@ -96,13 +109,14 @@ The grids below show the original image (top-left), the validation transform (to
 ## Repository Structure
 
 ```
-├── preprocessing.py     # Dataset exploration, annotation parsing, crop+resize, splitting
-├── augmentation.py      # Albumentations train/val transform pipelines
-├── dataset.py           # PyTorch Dataset class and DataLoader factory
-├── model.py             # ModelFactory — ResNet50 / EfficientNet-B0 with transfer learning
-├── train.py             # Training loop, optimiser, scheduler, checkpointing
-├── evaluate.py          # Inference, metrics, confusion matrix, training curves
-├── requirements.txt     # Python dependencies
+├── preprocessing.py          # Dataset exploration, annotation parsing, crop+resize, splitting
+├── augmentation.py           # Albumentations train/val transform pipelines
+├── dataset.py                # PyTorch Dataset class and DataLoader factory
+├── model.py                  # ModelFactory — ResNet50 / EfficientNet-B0 with transfer learning
+├── train.py                  # Training loop, optimiser, scheduler, checkpointing
+├── evaluate.py               # Inference, metrics, confusion matrix, training curves
+├── generate_eda_plots.py     # Regenerates class_balance.png and image_dimensions.png
+├── requirements.txt          # Python dependencies
 └── assets/
     ├── class_balance.png
     ├── image_dimensions.png
@@ -110,8 +124,8 @@ The grids below show the original image (top-left), the validation transform (to
     ├── preprocessing_sample_2.png
     ├── augmentation_sample_1.png
     ├── augmentation_sample_2.png
-    ├── training_accuracy.png
-    └── training_loss.png
+    ├── training_curves.png
+    └── confusion_matrix.png
 ```
 
 ---
@@ -152,13 +166,21 @@ data/
     └── ...
 ```
 
-### 2. Preprocess the dataset
+### 2. (Optional) Generate EDA plots
+
+```bash
+python generate_eda_plots.py
+```
+
+Produces `assets/class_balance.png` and `assets/image_dimensions.png` at 200 DPI.
+
+### 3. Preprocess the dataset
 
 ```bash
 python preprocessing.py
 ```
 
-This parses all XML annotation files, crops each image to its bounding box, resizes to 224×224, performs a stratified 70/20/10 train/val/test split, and saves all outputs under `processed_data/`:
+Parses all XML annotation files, crops each image to its bounding box, resizes to 224×224, performs a stratified 70/20/10 train/val/test split, and saves all outputs under `processed_data/`:
 
 ```
 processed_data/
@@ -169,7 +191,7 @@ processed_data/
 └── split_info.json
 ```
 
-### 3. Train the model
+### 4. Train the model
 
 ```bash
 python train.py
@@ -177,17 +199,17 @@ python train.py
 
 Training configuration is defined in `TrainingConfig` at the top of `train.py`. The best checkpoint is saved to `checkpoints/dog_breed_resnet50/best_model.pth`.
 
-### 4. Evaluate the model
+### 5. Evaluate the model
 
 ```bash
 python evaluate.py
 ```
 
-Runs inference on the test set and saves to `evaluation_results/`:
+Saves to `evaluation_results/`:
 - `metrics.json` — all numeric metrics
 - `classification_report.txt` — per-class precision, recall, F1
 - `confusion_matrix.png` — top-30 class confusion matrix
-- `training_curves.png` — loss and accuracy over epochs
+- `training_curves.png` — combined loss and accuracy curves
 
 ---
 
