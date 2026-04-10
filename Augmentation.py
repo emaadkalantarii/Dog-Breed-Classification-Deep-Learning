@@ -54,7 +54,8 @@ def get_train_transforms() -> A.Compose:
     """
     return A.Compose([
         A.RandomResizedCrop(
-            size=(IMAGE_SIZE, IMAGE_SIZE),
+            height=IMAGE_SIZE,
+            width=IMAGE_SIZE,
             scale=(0.7, 1.0),
             ratio=(0.75, 1.33),
         ),
@@ -94,14 +95,10 @@ def get_train_transforms() -> A.Compose:
 
         # Occlusion / erasing
         A.CoarseDropout(
-            num_holes_range=(2, 8),
-            hole_height_range=(8, 24),
-            hole_width_range=(8, 24),
-            fill=0,
-            p=0.15,
-        ),
-        A.RandomErasing(
-            scale=(0.02, 0.15),
+            max_holes=8,
+            max_height=24,
+            max_width=24,
+            fill_value=0,
             p=0.15,
         ),
 
